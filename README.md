@@ -6,7 +6,7 @@ Please turn off *registration process* as this makes a login / creates a user ba
 
 ## Installation
 
-    npm install https://github.com/smartameer/nodebb-plugin-office-ldap
+    npm install nodebb-plugin-office-ldap
 
 ## Screenshots
 
