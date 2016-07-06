@@ -1,0 +1,28 @@
+{
+  "name": "nodebb-plugin-office-ldap",
+  "version": "0.0.1",
+  "description": "Office LDAP Login",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smartameer/nodebb-plugin-office-ldap"
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "ldap",
+    "office"
+  ],
+  "author": {
+    "name": "smartameer",
+    "email": "pradeeppatro16@gmail.com"
+  },
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "nbbpm": {
+    "compatibility": "^1.0.0"
+  },
+  "dependencies": {
+    "ldapjs": "~1.0.0"
+  }
+}
