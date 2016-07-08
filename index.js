@@ -89,7 +89,7 @@
                 }
                 var userdetails = username.split('@');
                 var client = ldapjs.createClient(options);
-                if (userdetails.length == 0) {
+                if (userdetails.length == 1) {
                     username = username.trim() + '@' + office_ldap.get_domain(config.base);
                 }
 
@@ -166,7 +166,7 @@
                                 if (err) {
                                     return callback(err);
                                 }
-                                if (config.autovalidate) {
+                                if (config.autovalidate === 'on') {
                                     user.setUserField(uid, 'email:confirmed', 1);
                                 }
                                 return success(uid);
