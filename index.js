@@ -1,6 +1,6 @@
 (function(module) {
     "use strict";
-    /* globals app */
+    /* globals app, socket */
     var user           = module.parent.require('./user'),
         meta           = module.parent.require('./meta'),
         db             = module.parent.require('./database'),
@@ -17,6 +17,20 @@
     var office_ldap = {
         name: "Office LDAP",
 
+        get_domain: function (base) {
+            var domain = '';
+            if (base !== '') {
+                var temp = base.match(/dc=([^,]*)/g);
+                if (temp.length > 0) {
+                    domain = temp.map(function (str) {
+                        return str.match(/dc=([^,]*)/)[1];
+                    }).reduce(function (current, previous) {
+                        return current + '.' + previous;
+                    });
+                }
+            }
+            return domain;
+        },
         admin: function (custom_header, callback) {
             custom_header.plugins.push({
                 "route": "/plugins/office_ldap",
@@ -36,6 +50,7 @@
             });
             params.router.get('/admin/plugins/office_ldap', params.middleware.admin.buildHeader, render);
             params.router.get('/api/admin/plugins/office_ldap', render);
+            
             callback();
         },
 
@@ -74,6 +89,9 @@
                 }
                 var userdetails = username.split('@');
                 var client = ldapjs.createClient(options);
+                if (userdetails.length == 0) {
+                    username = username.trim() + '@' + office_ldap.get_domain(config.base);
+                }
 
                 client.bind(username, password, function(err) {
                     if (err) {
@@ -147,6 +165,9 @@
                             return user.create({username: handle, email: email}, function (err, uid) {
                                 if (err) {
                                     return callback(err);
+                                }
+                                if (config.autovalidate) {
+                                    user.setUserField(uid, 'email:confirmed', 1);
                                 }
                                 return success(uid);
                             });
