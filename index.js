@@ -77,12 +77,8 @@
         	i = 0;
 
         	while (i < bytes) {
-        	  	k1 =
-        	  	  ((key.charCodeAt(i) & 0xff)) |
-        	  	  ((key.charCodeAt(++i) & 0xff) << 8) |
-        	  	  ((key.charCodeAt(++i) & 0xff) << 16) |
-        	  	  ((key.charCodeAt(++i) & 0xff) << 24);
-        		++i;
+        	  	k1 =((key.charCodeAt(i) & 0xff)) | ((key.charCodeAt(++i) & 0xff) << 8) | ((key.charCodeAt(++i) & 0xff) << 16) | ((key.charCodeAt(++i) & 0xff) << 24); 
+        	  	++i;
 
         		k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
         		k1 = (k1 << 15) | (k1 >>> 17);
