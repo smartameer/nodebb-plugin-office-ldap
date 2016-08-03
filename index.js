@@ -65,7 +65,8 @@
             });
         },
 
-        murmurhash3_32_gc: function(key, seed=12345) {
+        murmurhash3_32_gc: function(key, seed) {
+        	seed = seed || 12345;
         	var remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
 
         	remainder = key.length & 3; // key.length % 4
