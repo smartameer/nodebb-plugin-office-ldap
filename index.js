@@ -13,7 +13,7 @@
         local_strategy = module.parent.require('passport-local').Strategy,
         ldapjs         = require('ldapjs');
 
-    var config = {};
+    var master_config = {};
     var office_ldap = {
         name: "Office LDAP",
 
@@ -47,7 +47,7 @@
             }
 
             meta.settings.get('officeldap', function(err, options) {
-                config = options;
+                master_config = options;
             });
             params.router.get('/admin/plugins/office_ldap', params.middleware.admin.buildHeader, render);
             params.router.get('/api/admin/plugins/office_ldap', render);
@@ -60,9 +60,15 @@
                 if (err) {
                     return callback(null, options);
                 }
-                config = settings;
+                master_config = settings;
                 options.officeldap = settings;
                 callback(null, options);
+            });
+        },
+
+        fetch_config: function(callback) {
+            meta.settings.get('officeldap', function(err, options) {
+                callback(options);
             });
         },
 
@@ -124,7 +130,7 @@
 
         override: function () {
             var options = {
-                url: config.server + ':' + config.port
+                url: master_config.server + ':' + master_config.port
             };
 
             passport.use(new local_strategy({
@@ -136,10 +142,26 @@
                 if (!password) {
                     return next(new Error('[[error:invalid-password]]'));
                 }
-                var userdetails = username.split('@');
+                if (typeof master_config.server === 'undefined') {
+                    office_ldap.fetch_config(function(config) {
+                        var options = {
+                            url: config.server + ':' + config.port
+                        };
+                        master_config = config;
+                        office_ldap.process(options, username, password, next);
+                    });
+                } else {
+                    office_ldap.process(options, username, password, next);
+                }
+            }));
+        },
+
+        process: function(options, username, password, next) {
+            try {
                 var client = ldapjs.createClient(options);
+                var userdetails = username.split('@');
                 if (userdetails.length == 1) {
-                    username = username.trim() + '@' + office_ldap.get_domain(config.base);
+                    username = username.trim() + '@' + office_ldap.get_domain(master_config.base);
                 }
 
                 client.bind(username, password, function(err) {
@@ -148,12 +170,12 @@
                         return next(new Error('[[error:invalid-password]]'));
                     }
                     var opt = {
-                        filter: '(&(' + config.filter + '=' + userdetails[0] + '))',
-                        scope: 'sub',
-                        sizeLimit: 1
+                        filter: '(&(' + master_config.filter + '=' + userdetails[0] + '))',
+                    scope: 'sub',
+                    sizeLimit: 1
                     };
 
-                    client.search(config.base, opt, function (err, res) {
+                    client.search(master_config.base, opt, function (err, res) {
                         if (err) {
                             return next(new Error('[[error:invalid-email]]'));
                         }
@@ -175,12 +197,14 @@
                         });
 
                         res.on('error', function(err) {
-                            winston.error('error: ' + err.message);
+                            winston.error('Office LDAP Error:' + err.message);
                             return next(new Error('[[error:invalid-email]]'));
                         });
                     });
                 });
-            }));
+            } catch (err) {
+                winston.error('Office LDAP Error :' +  err.message);
+            }
         },
 
         login: function (ldapid, handle, email, callback) {
@@ -219,7 +243,7 @@
                                 if (err) {
                                     return callback(err);
                                 }
-                                if (config.autovalidate == 1) {
+                                if (master_config.autovalidate == 1) {
                                     user.setUserField(uid, 'email:confirmed', 1);
                                 }
                                 return success(uid);
