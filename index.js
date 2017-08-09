@@ -186,7 +186,7 @@
                                 profile.mail = username;
                             }
 
-                            office_ldap.login(id, profile.displayName, profile.mail, function (err, userObject) {
+                            office_ldap.login(id, profile.displayName, profile.sAMAccountName, profile.mail, function (err, userObject) {
                                 if (err) {
                                     winston.error(err);
                                     return next(new Error('[[error:invalid-email]]'));
@@ -206,7 +206,7 @@
             }
         },
 
-        login: function (ldapid, handle, email, callback) {
+        login: function (ldapid, fullname, username, email, callback) {
             var _self = this;
             _self.getuidby_ldapid(ldapid, function (err, uid) {
                 if (err) {
@@ -235,10 +235,10 @@
 
                         if (!uid) {
                             var pattern = new RegExp(/[\ ]*\(.*\)/);
-                            if (pattern.test(handle)) {
-                                handle = handle.replace(pattern, '');
+                            if (pattern.test(username)) {
+                                username = username.replace(pattern, '');
                             }
-                            return user.create({username: handle, email: email}, function (err, uid) {
+                            return user.create({username: username, fullname: fullname, email: email}, function (err, uid) {
                                 if (err) {
                                     return callback(err);
                                 }
