@@ -20,10 +20,10 @@
         get_domain: function (base) {
             var domain = '';
             if (base !== '') {
-                var temp = base.match(/dc=([^,]*)/g);
-                if (temp.length > 0) {
+                var temp = base.match(/dc=([^,]*)/gi);
+                if (temp && temp.length > 0) {
                     domain = temp.map(function (str) {
-                        return str.match(/dc=([^,]*)/)[1];
+                        return str.match(/dc=([^,]*)/i)[1];
                     }).reduce(function (current, previous) {
                         return current + '.' + previous;
                     });
@@ -129,10 +129,6 @@
         },
 
         override: function () {
-            var options = {
-                url: master_config.server + ':' + master_config.port
-            };
-
             passport.use(new local_strategy({
                 passReqToCallback: true
             }, function (req, username, password, next) {
@@ -151,6 +147,9 @@
                         office_ldap.process(options, username, password, next);
                     });
                 } else {
+                    var options = {
+                        url: master_config.server + ':' + master_config.port
+                    };
                     office_ldap.process(options, username, password, next);
                 }
             }));
@@ -187,7 +186,7 @@
                                 profile.mail = username;
                             }
 
-                            office_ldap.login(id, profile.displayName, profile.mail, function (err, userObject) {
+                            office_ldap.login(id, profile.displayName, profile.sAMAccountName, profile.mail, function (err, userObject) {
                                 if (err) {
                                     winston.error(err);
                                     return next(new Error('[[error:invalid-email]]'));
@@ -207,7 +206,7 @@
             }
         },
 
-        login: function (ldapid, handle, email, callback) {
+        login: function (ldapid, fullname, username, email, callback) {
             var _self = this;
             _self.getuidby_ldapid(ldapid, function (err, uid) {
                 if (err) {
@@ -236,10 +235,10 @@
 
                         if (!uid) {
                             var pattern = new RegExp(/[\ ]*\(.*\)/);
-                            if (pattern.test(handle)) {
-                                handle = handle.replace(pattern, '');
+                            if (pattern.test(username)) {
+                                username = username.replace(pattern, '');
                             }
-                            return user.create({username: handle, email: email}, function (err, uid) {
+                            return user.create({username: username, fullname: fullname, email: email}, function (err, uid) {
                                 if (err) {
                                     return callback(err);
                                 }
