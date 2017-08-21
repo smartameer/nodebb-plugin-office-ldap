@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-office-ldap",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Office LDAP Login",
   "main": "index.js",
   "repository": {
