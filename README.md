@@ -14,3 +14,12 @@ Please turn off *registration process* as this makes a login / creates a user ba
 
 ### Desktop
 ![Desktop OfficeLDAP](screenshots/desktop.png?raw=true)
+
+### For Developers
+
+- The code now holds only the username based filter. i.e sAMAccountName
+    - options are sent now default to [index.js](index.js#L151) as per openldap
+- Filter can be configured like this, sample `(&(objectCategory=Person)(sAMAccountName=*))`.
+    - Ref cheatsheet: https://gist.github.com/jonlabelle/0f8ec20c2474084325a89bc5362008a7
+- Unix command for checking testing and checking is
+    - `ldapsearch -H <Serverurl> -x -D <Email> -w <Password> -b <BaseDN> “(<Filter=value>)”`
